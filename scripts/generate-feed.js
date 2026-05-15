@@ -300,34 +300,21 @@ async function fetchYouTubeFeed(state) {
   const state = await loadState();
   const OUTPUT_DIR = join(SCRIPT_DIR, "..");
 
-  try {
-    if (runAll || onlyX) {
-      const feed = await fetchXFeed(state);
-      await writeFile(join(OUTPUT_DIR, "feed-x.json"), JSON.stringify(feed, null, 2));
-      console.log(`X: ${feed.x.length} accounts with new posts`);
+  const run = async (label, fn, outFile) => {
+    try {
+      const feed = await fn(state);
+      await writeFile(join(OUTPUT_DIR, outFile), JSON.stringify(feed, null, 2));
+      const key = Object.keys(feed).find(k => Array.isArray(feed[k]));
+      console.log(`${label}: ${feed[key]?.length ?? 0} sources with new posts`);
+    } catch (e) {
+      console.error(`${label} error: ${e.message}`);
     }
+  };
 
-    if (runAll || onlyInstagram) {
-      const feed = await fetchInstagramFeed(state);
-      await writeFile(join(OUTPUT_DIR, "feed-instagram.json"), JSON.stringify(feed, null, 2));
-      console.log(`Instagram: ${feed.instagram.length} accounts with new posts`);
-    }
-
-    if (runAll || onlyYouTube) {
-      const feed = await fetchYouTubeFeed(state);
-      await writeFile(join(OUTPUT_DIR, "feed-youtube.json"), JSON.stringify(feed, null, 2));
-      console.log(`YouTube: ${feed.youtube.length} channels with new videos`);
-    }
-
-    if (runAll || onlyFacebook) {
-      const feed = await fetchFacebookFeed(state);
-      await writeFile(join(OUTPUT_DIR, "feed-facebook.json"), JSON.stringify(feed, null, 2));
-      console.log(`Facebook: ${feed.facebook.length} pages with new posts`);
-    }
-  } catch (e) {
-    console.error(`Feed generation error: ${e.message}`);
-    process.exit(1);
-  }
+  if (runAll || onlyX)        await run("X",         fetchXFeed,         "feed-x.json");
+  if (runAll || onlyInstagram) await run("Instagram", fetchInstagramFeed, "feed-instagram.json");
+  if (runAll || onlyYouTube)   await run("YouTube",   fetchYouTubeFeed,   "feed-youtube.json");
+  if (runAll || onlyFacebook)  await run("Facebook",  fetchFacebookFeed,  "feed-facebook.json");
 
   await saveState(state);
   console.log("Done.");
