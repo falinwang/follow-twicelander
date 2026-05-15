@@ -134,10 +134,10 @@ async function sendEmail(text, apiKey, toEmail) {
       'Authorization': `Bearer ${apiKey}`
     },
     body: JSON.stringify({
-      from: 'AI Builders Digest <digest@resend.dev>',
+      from: 'TWICE 每日動態 <digest@resend.dev>',
       to: [toEmail],
-      subject: `AI Builders Digest — ${new Date().toLocaleDateString('en-US', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      subject: `TWICE 每日動態 — ${new Date().toLocaleDateString('zh-TW', {
+        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
       })}`,
       text: text
     })
@@ -194,6 +194,25 @@ async function main() {
           status: 'ok',
           method: 'email',
           message: `Digest sent to ${toEmail}`
+        }));
+        break;
+      }
+
+      case 'both': {
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        const chatId = delivery.chatId;
+        const apiKey = process.env.RESEND_API_KEY;
+        const toEmail = delivery.email;
+        if (!botToken) throw new Error('TELEGRAM_BOT_TOKEN not found in .env');
+        if (!chatId) throw new Error('delivery.chatId not found in config.json');
+        if (!apiKey) throw new Error('RESEND_API_KEY not found in .env');
+        if (!toEmail) throw new Error('delivery.email not found in config.json');
+        await sendTelegram(digestText, botToken, chatId);
+        await sendEmail(digestText, apiKey, toEmail);
+        console.log(JSON.stringify({
+          status: 'ok',
+          method: 'both',
+          message: `Digest sent to Telegram and ${toEmail}`
         }));
         break;
       }
