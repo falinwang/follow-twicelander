@@ -169,20 +169,66 @@ function parseRSSItems(xml) {
 // -- Platform Fetchers -------------------------------------------------------
 
 async function fetchXFeed(state) {
+  const bearerToken = process.env.X_BEARER_TOKEN;
+  if (!bearerToken) {
+    console.warn("X_BEARER_TOKEN not set, skipping X feed");
+    return { generatedAt: new Date().toISOString(), lookbackHours: LOOKBACK_HOURS, x: [] };
+  }
+
   const sources = await loadSources();
+  const handles = sources.x_accounts.map((a) => a.handle).join(",");
+
+  // Batch look up user IDs from handles
+  let users = [];
+  try {
+    const res = await fetch(
+      `https://api.twitter.com/2/users/by?usernames=${handles}&user.fields=name`,
+      { headers: { Authorization: `Bearer ${bearerToken}` }, signal: AbortSignal.timeout(15000) }
+    );
+    if (!res.ok) { console.warn(`X API users lookup failed: ${res.status}`); return { generatedAt: new Date().toISOString(), lookbackHours: LOOKBACK_HOURS, x: [] }; }
+    users = (await res.json()).data || [];
+  } catch (e) {
+    console.warn(`X API error: ${e.message}`);
+    return { generatedAt: new Date().toISOString(), lookbackHours: LOOKBACK_HOURS, x: [] };
+  }
+
+  const cutoff = new Date(Date.now() - LOOKBACK_HOURS * 60 * 60 * 1000).toISOString();
   const results = [];
 
-  for (const account of sources.x_accounts) {
-    const url = `${RSSHUB_BASE}/twitter/user/${account.handle}`;
-    const xml = await fetchRSS(url);
-    const items = parseRSSItems(xml)
-      .filter((item) => !state.seenPosts[item.id])
-      .slice(0, MAX_POSTS_PER_ACCOUNT);
+  for (const user of users) {
+    try {
+      const res = await fetch(
+        `https://api.twitter.com/2/users/${user.id}/tweets?max_results=10&tweet.fields=created_at,text,public_metrics&exclude=retweets,replies&start_time=${cutoff}`,
+        { headers: { Authorization: `Bearer ${bearerToken}` }, signal: AbortSignal.timeout(15000) }
+      );
+      if (!res.ok) { console.warn(`X API tweets failed for @${user.username}: ${res.status}`); continue; }
 
-    for (const item of items) state.seenPosts[item.id] = Date.now();
+      const tweets = ((await res.json()).data || []).filter((t) => !state.seenPosts[t.id]);
+      for (const t of tweets) state.seenPosts[t.id] = Date.now();
 
-    if (items.length > 0) {
-      results.push({ source: "x", name: account.name, handle: account.handle, posts: items });
+      const account = sources.x_accounts.find(
+        (a) => a.handle.toLowerCase() === user.username.toLowerCase()
+      );
+
+      if (tweets.length > 0) {
+        results.push({
+          source: "x",
+          name: account?.name || user.name,
+          handle: user.username,
+          posts: tweets.map((t) => ({
+            id: t.id,
+            title: t.text.slice(0, 100),
+            content: t.text,
+            publishedAt: t.created_at,
+            url: `https://x.com/${user.username}/status/${t.id}`,
+            imageUrl: null,
+            likes: t.public_metrics?.like_count || 0,
+            retweets: t.public_metrics?.retweet_count || 0,
+          })),
+        });
+      }
+    } catch (e) {
+      console.warn(`X API error for @${user.username}: ${e.message}`);
     }
   }
 
