@@ -26,17 +26,19 @@ import { homedir } from 'os';
 const USER_DIR = join(homedir(), '.follow-builders');
 const CONFIG_PATH = join(USER_DIR, 'config.json');
 
-const FEED_X_URL = 'https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-x.json';
-const FEED_PODCASTS_URL = 'https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-podcasts.json';
-const FEED_BLOGS_URL = 'https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-blogs.json';
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/falinwang/follow-twicelander/main';
 
-const PROMPTS_BASE = 'https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/prompts';
+const FEED_X_URL = `${GITHUB_RAW_BASE}/feed-x.json`;
+const FEED_INSTAGRAM_URL = `${GITHUB_RAW_BASE}/feed-instagram.json`;
+const FEED_YOUTUBE_URL = `${GITHUB_RAW_BASE}/feed-youtube.json`;
+const FEED_FACEBOOK_URL = `${GITHUB_RAW_BASE}/feed-facebook.json`;
+
+const PROMPTS_BASE = `${GITHUB_RAW_BASE}/prompts`;
 const PROMPT_FILES = [
-  'summarize-podcast.md',
   'summarize-tweets.md',
-  'summarize-blogs.md',
+  'summarize-instagram.md',
+  'summarize-youtube.md',
   'digest-intro.md',
-  'translate.md'
 ];
 
 // -- Fetch helpers -----------------------------------------------------------
@@ -72,16 +74,18 @@ async function main() {
     }
   }
 
-  // 2. Fetch all three feeds
-  const [feedX, feedPodcasts, feedBlogs] = await Promise.all([
+  // 2. Fetch all four feeds
+  const [feedX, feedInstagram, feedYouTube, feedFacebook] = await Promise.all([
     fetchJSON(FEED_X_URL),
-    fetchJSON(FEED_PODCASTS_URL),
-    fetchJSON(FEED_BLOGS_URL)
+    fetchJSON(FEED_INSTAGRAM_URL),
+    fetchJSON(FEED_YOUTUBE_URL),
+    fetchJSON(FEED_FACEBOOK_URL),
   ]);
 
-  if (!feedX) errors.push('Could not fetch tweet feed');
-  if (!feedPodcasts) errors.push('Could not fetch podcast feed');
-  if (!feedBlogs) errors.push('Could not fetch blog feed');
+  if (!feedX) errors.push('Could not fetch X feed');
+  if (!feedInstagram) errors.push('Could not fetch Instagram feed');
+  if (!feedYouTube) errors.push('Could not fetch YouTube feed');
+  if (!feedFacebook) errors.push('Could not fetch Facebook feed');
 
   // 3. Load prompts with priority: user custom > remote (GitHub) > local default
   //
@@ -124,32 +128,22 @@ async function main() {
   const output = {
     status: 'ok',
     generatedAt: new Date().toISOString(),
-
-    // User preferences
     config: {
-      language: config.language || 'en',
+      language: config.language || 'zh',
       frequency: config.frequency || 'daily',
       delivery: config.delivery || { method: 'stdout' }
     },
-
-    // Content to remix
-    podcasts: feedPodcasts?.podcasts || [],
     x: feedX?.x || [],
-    blogs: feedBlogs?.blogs || [],
-
-    // Stats for the LLM to reference
+    instagram: feedInstagram?.instagram || [],
+    youtube: feedYouTube?.youtube || [],
+    facebook: feedFacebook?.facebook || [],
     stats: {
-      podcastEpisodes: feedPodcasts?.podcasts?.length || 0,
-      xBuilders: feedX?.x?.length || 0,
-      totalTweets: (feedX?.x || []).reduce((sum, a) => sum + a.tweets.length, 0),
-      blogPosts: feedBlogs?.blogs?.length || 0,
-      feedGeneratedAt: feedX?.generatedAt || feedPodcasts?.generatedAt || feedBlogs?.generatedAt || null
+      xAccounts: feedX?.x?.length || 0,
+      instagramAccounts: feedInstagram?.instagram?.length || 0,
+      youtubeChannels: feedYouTube?.youtube?.length || 0,
+      facebookPages: feedFacebook?.facebook?.length || 0,
     },
-
-    // Prompts — the LLM reads these and follows the instructions
     prompts,
-
-    // Non-fatal errors
     errors: errors.length > 0 ? errors : undefined
   };
 
