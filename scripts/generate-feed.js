@@ -234,6 +234,9 @@ async function fetchFacebookFeed(state) {
 async function resolveYouTubeFeedUrl(channelUrl) {
   if (!channelUrl?.includes("youtube.com")) return null;
 
+  // Already a feed URL — pass through directly
+  if (channelUrl.includes("/feeds/videos.xml")) return channelUrl;
+
   const playlistM = channelUrl.match(/[?&]list=([A-Za-z0-9_-]+)/);
   if (playlistM)
     return `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistM[1]}`;
@@ -241,6 +244,11 @@ async function resolveYouTubeFeedUrl(channelUrl) {
   const channelIdM = channelUrl.match(/\/channel\/(UC[A-Za-z0-9_-]+)/);
   if (channelIdM)
     return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelIdM[1]}`;
+
+  // Also handle ?channel_id= directly in non-feed URL (shouldn't happen but safe)
+  const queryIdM = channelUrl.match(/[?&]channel_id=(UC[A-Za-z0-9_-]+)/);
+  if (queryIdM)
+    return `https://www.youtube.com/feeds/videos.xml?channel_id=${queryIdM[1]}`;
 
   if (channelUrl.match(/\/@[A-Za-z0-9_.-]+/)) {
     try {

@@ -17,8 +17,8 @@
     { "name": "子瑜 Tzuyu", "handle": "thinkaboutzu" }
   ],
   "youtube_channels": [
-    { "name": "TWICE", "url": "https://www.youtube.com/@TWICE" },
-    { "name": "TWICE JAPAN", "url": "https://www.youtube.com/@TWICEJapan" }
+    { "name": "TWICE", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCzgxx_DM2Dcb9Y1spb9mUJA" },
+    { "name": "TWICE JAPAN", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCCRb6nYKaT8tzLA8CwDdUtw" }
   ],
   "facebook_pages": [
     { "name": "TWICE Official", "pageId": "JYPETWICE" }
