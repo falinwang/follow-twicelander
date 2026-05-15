@@ -203,26 +203,6 @@ async function fetchXFeed(state) {
   return { generatedAt: new Date().toISOString(), lookbackHours: LOOKBACK_HOURS, x: results };
 }
 
-async function fetchInstagramFeed(state) {
-  const sources = await loadSources();
-  const results = [];
-
-  for (const account of sources.instagram_accounts) {
-    const url = `${RSSHUB_BASE}/instagram/user/${account.handle}`;
-    const xml = await fetchRSS(url);
-    const items = parseRSSItems(xml)
-      .filter((item) => !state.seenPosts[item.id])
-      .slice(0, MAX_POSTS_PER_ACCOUNT);
-
-    for (const item of items) state.seenPosts[item.id] = Date.now();
-
-    if (items.length > 0) {
-      results.push({ source: "instagram", name: account.name, handle: account.handle, posts: items });
-    }
-  }
-
-  return { generatedAt: new Date().toISOString(), lookbackHours: LOOKBACK_HOURS, instagram: results };
-}
 
 async function fetchFacebookFeed(state) {
   const sources = await loadSources();
@@ -314,10 +294,9 @@ async function fetchYouTubeFeed(state) {
 (async () => {
   const args = process.argv.slice(2);
   const onlyX = args.includes("--x-only");
-  const onlyInstagram = args.includes("--instagram-only");
   const onlyYouTube = args.includes("--youtube-only");
   const onlyFacebook = args.includes("--facebook-only");
-  const runAll = !onlyX && !onlyInstagram && !onlyYouTube && !onlyFacebook;
+  const runAll = !onlyX && !onlyYouTube && !onlyFacebook;
 
   const state = await loadState();
   const OUTPUT_DIR = join(SCRIPT_DIR, "..");
@@ -333,10 +312,9 @@ async function fetchYouTubeFeed(state) {
     }
   };
 
-  if (runAll || onlyX)        await run("X",         fetchXFeed,         "feed-x.json");
-  if (runAll || onlyInstagram) await run("Instagram", fetchInstagramFeed, "feed-instagram.json");
-  if (runAll || onlyYouTube)   await run("YouTube",   fetchYouTubeFeed,   "feed-youtube.json");
-  if (runAll || onlyFacebook)  await run("Facebook",  fetchFacebookFeed,  "feed-facebook.json");
+  if (runAll || onlyX)       await run("X",       fetchXFeed,       "feed-x.json");
+  if (runAll || onlyYouTube) await run("YouTube", fetchYouTubeFeed, "feed-youtube.json");
+  if (runAll || onlyFacebook) await run("Facebook", fetchFacebookFeed, "feed-facebook.json");
 
   await saveState(state);
   console.log("Done.");
