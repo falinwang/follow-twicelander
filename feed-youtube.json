@@ -1,21 +1,5 @@
 {
-  "generatedAt": "2026-05-15T00:43:32.889Z",
+  "generatedAt": "2026-05-15T00:50:07.454Z",
   "lookbackHours": 24,
-  "youtube": [
-    {
-      "source": "youtube",
-      "name": "TWICE",
-      "channelUrl": "https://www.youtube.com/@TWICE",
-      "videos": [
-        {
-          "id": "yt:video:OyvJdWFo-aU",
-          "title": "[TW-DAY☀️] #19 This moment with JIHYO feels so hvnly 🪽",
-          "content": "",
-          "publishedAt": "2026-05-14T09:00:03.000Z",
-          "url": "https://www.youtube.com/watch?v=OyvJdWFo-aU",
-          "imageUrl": null
-        }
-      ]
-    }
-  ]
+  "youtube": []
 }
