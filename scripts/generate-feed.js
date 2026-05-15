@@ -289,39 +289,46 @@ async function fetchYouTubeFeed(state) {
 
 // -- Main --------------------------------------------------------------------
 
-const args = process.argv.slice(2);
-const onlyX = args.includes("--x-only");
-const onlyInstagram = args.includes("--instagram-only");
-const onlyYouTube = args.includes("--youtube-only");
-const onlyFacebook = args.includes("--facebook-only");
-const runAll = !onlyX && !onlyInstagram && !onlyYouTube && !onlyFacebook;
+(async () => {
+  const args = process.argv.slice(2);
+  const onlyX = args.includes("--x-only");
+  const onlyInstagram = args.includes("--instagram-only");
+  const onlyYouTube = args.includes("--youtube-only");
+  const onlyFacebook = args.includes("--facebook-only");
+  const runAll = !onlyX && !onlyInstagram && !onlyYouTube && !onlyFacebook;
 
-const state = await loadState();
-const OUTPUT_DIR = join(SCRIPT_DIR, "..");
+  const state = await loadState();
+  const OUTPUT_DIR = join(SCRIPT_DIR, "..");
 
-if (runAll || onlyX) {
-  const feed = await fetchXFeed(state);
-  await writeFile(join(OUTPUT_DIR, "feed-x.json"), JSON.stringify(feed, null, 2));
-  console.log(`X: ${feed.x.length} accounts with new posts`);
-}
+  try {
+    if (runAll || onlyX) {
+      const feed = await fetchXFeed(state);
+      await writeFile(join(OUTPUT_DIR, "feed-x.json"), JSON.stringify(feed, null, 2));
+      console.log(`X: ${feed.x.length} accounts with new posts`);
+    }
 
-if (runAll || onlyInstagram) {
-  const feed = await fetchInstagramFeed(state);
-  await writeFile(join(OUTPUT_DIR, "feed-instagram.json"), JSON.stringify(feed, null, 2));
-  console.log(`Instagram: ${feed.instagram.length} accounts with new posts`);
-}
+    if (runAll || onlyInstagram) {
+      const feed = await fetchInstagramFeed(state);
+      await writeFile(join(OUTPUT_DIR, "feed-instagram.json"), JSON.stringify(feed, null, 2));
+      console.log(`Instagram: ${feed.instagram.length} accounts with new posts`);
+    }
 
-if (runAll || onlyYouTube) {
-  const feed = await fetchYouTubeFeed(state);
-  await writeFile(join(OUTPUT_DIR, "feed-youtube.json"), JSON.stringify(feed, null, 2));
-  console.log(`YouTube: ${feed.youtube.length} channels with new videos`);
-}
+    if (runAll || onlyYouTube) {
+      const feed = await fetchYouTubeFeed(state);
+      await writeFile(join(OUTPUT_DIR, "feed-youtube.json"), JSON.stringify(feed, null, 2));
+      console.log(`YouTube: ${feed.youtube.length} channels with new videos`);
+    }
 
-if (runAll || onlyFacebook) {
-  const feed = await fetchFacebookFeed(state);
-  await writeFile(join(OUTPUT_DIR, "feed-facebook.json"), JSON.stringify(feed, null, 2));
-  console.log(`Facebook: ${feed.facebook.length} pages with new posts`);
-}
+    if (runAll || onlyFacebook) {
+      const feed = await fetchFacebookFeed(state);
+      await writeFile(join(OUTPUT_DIR, "feed-facebook.json"), JSON.stringify(feed, null, 2));
+      console.log(`Facebook: ${feed.facebook.length} pages with new posts`);
+    }
+  } catch (e) {
+    console.error(`Feed generation error: ${e.message}`);
+    process.exit(1);
+  }
 
-await saveState(state);
-console.log("Done.");
+  await saveState(state);
+  console.log("Done.");
+})();
