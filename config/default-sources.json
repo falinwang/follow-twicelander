@@ -1,20 +1,8 @@
 {
   "x_accounts": [
-    { "name": "TWICE", "handle": "JYPETWICE" },
-    { "name": "TWICE JAPAN", "handle": "JYPETWICE_JAPAN" }
-  ],
-  "instagram_accounts": [
-    { "name": "TWICE Official", "handle": "twicetagram" },
-    { "name": "TWICE Japan", "handle": "jypetwice_japan" },
-    { "name": "娜璉 Nayeon", "handle": "nayeonyny" },
-    { "name": "定延 Jeongyeon", "handle": "jy_pieces" },
-    { "name": "Momo", "handle": "momo" },
-    { "name": "Sana", "handle": "m.by__sana" },
-    { "name": "志效 Jihyo", "handle": "_zyozyozy" },
-    { "name": "Mina", "handle": "mina_sr_my" },
-    { "name": "多賢 Dahyun", "handle": "dahhyunnee" },
-    { "name": "彩瑛 Chaeyoung", "handle": "chaeyo.0" },
-    { "name": "子瑜 Tzuyu", "handle": "thinkaboutzu" }
+    { "name": "TWICE 官方", "handle": "JYPETWICE" },
+    { "name": "TWICE JAPAN 官方", "handle": "JYPETWICE_JAPAN" },
+    { "name": "misayeon (IG鏡像)", "handle": "misayeon" }
   ],
   "youtube_channels": [
     { "name": "TWICE", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCzgxx_DM2Dcb9Y1spb9mUJA" },
